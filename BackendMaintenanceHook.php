@@ -23,16 +23,13 @@
  * PHP version 5
  * @copyright  Lingo4you 2013
  * @author     Mario Müller <http://www.lingolia.com/>
- * @version    1.0.0
+ * @version    1.0.1
  * @package    BackendMaintenance
  * @license    http://opensource.org/licenses/lgpl-3.0.html
  */
 
 class BackendMaintenanceHook extends \Backend
 {
-	protected $isActive = false;
-
-
 	public function __construct()
 	{
 		if (TL_MODE == 'BE' && $GLOBALS['TL_CONFIG']['backendMaintenance'] === true)
@@ -47,19 +44,17 @@ class BackendMaintenanceHook extends \Backend
 	{
 		$this->import('BackendUser', 'User');
 
-		if (!$this->User->isAdmin)
+		if ($this->User->isAdmin)
+		{
+			$strContent = preg_replace('~(<div id="header">\s*<h1.*)(</h1>)~isU', '$1 <strong style="color:red">['.$GLOBALS['TL_LANG']['backend_maintenance']['title'].']</strong>$2', $strContent);
+		}
+		elseif ($this->User->id > 0)
 		{
 			$strContent = str_ireplace('<h1 class="main_headline">', '<h1>', $strContent);
 			$strContent = str_ireplace(
 				'<div id="main">',
 				'<div id="main"><h1 class="main_headline">'.$GLOBALS['TL_LANG']['backend_maintenance']['title'].'</h1><p style="color:red;margin:2em;">'.sprintf($GLOBALS['TL_LANG']['backend_maintenance']['message'], $GLOBALS['TL_CONFIG']['adminEmail']).'</p></div><div style="display:none">',
 				$strContent);
-
-			return $strContent;
-		}
-		else
-		{
-			$strContent = preg_replace('~(<div id="header">\s*<h1.*)(</h1>)~isU', '$1 <strong style="color:red">['.$GLOBALS['TL_LANG']['backend_maintenance']['title'].']</strong>$2', $strContent);
 		}
 
 		return $strContent;
